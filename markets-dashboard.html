@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Markets Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a10;
+  --bg2: #0c1120;
+  --bg3: #111827;
+  --bg4: #1a2235;
+  --border: rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.12);
+  --text: #e2e8f0;
+  --text-muted: #475569;
+  --text-dim: #94a3b8;
+  --green: #22c55e;
+  --green-bg: rgba(34,197,94,0.10);
+  --green-border: rgba(34,197,94,0.25);
+  --red: #f43f5e;
+  --red-bg: rgba(244,63,94,0.10);
+  --red-border: rgba(244,63,94,0.25);
+  --gold: #f59e0b;
+  --gold-bg: rgba(245,158,11,0.10);
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --teal: #2dd4bf;
+  --orange: #fb923c;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 80% 40% at 10% -10%, rgba(96,165,250,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(167,139,250,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(45,212,191,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  position: relative;
+  z-index: 10;
+  padding: 24px 32px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+  background: linear-gradient(180deg, rgba(12,17,32,0.9) 0%, transparent 100%);
+}
+
+.header-left { display: flex; align-items: center; gap: 16px; }
+
+.logo-mark {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 20px rgba(96,165,250,0.3);
+}
+
+.header-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.header-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 400; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.05em; color: var(--text-dim);
+}
+
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.refresh-btn {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text-dim); border-radius: 8px;
+  padding: 8px 16px; cursor: pointer;
+  font-family: 'Sora', sans-serif;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.05em; transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.refresh-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--bg4); }
+.refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.last-update { font-size: 11px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+
+/* ── MAIN ── */
+.main { position: relative; z-index: 1; padding: 28px 32px 60px; max-width: 1800px; margin: 0 auto; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 52px; }
+
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+
+.section-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.section-count { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
+
+.section-divider {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
+/* ── REGION GROUP ── */
+.region-group { margin-bottom: 24px; }
+
+.region-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.region-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── GRID ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.cards-grid-wide {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.cards-grid-forex {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg3);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.card.positive { border-color: rgba(34,197,94,0.15); }
+.card.positive:hover { border-color: rgba(34,197,94,0.3); }
+.card.negative { border-color: rgba(244,63,94,0.12); }
+.card.negative:hover { border-color: rgba(244,63,94,0.25); }
+
+.card-glow {
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.positive .card-glow { background: var(--green); }
+.negative .card-glow { background: var(--red); }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+
+.card-emoji { font-size: 18px; line-height: 1; }
+
+.card-badge {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-muted);
+  background: var(--bg3); border: 1px solid var(--border);
+  padding: 2px 7px; border-radius: 4px;
+}
+
+.card-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; line-height: 1.3; }
+.card-sub { font-size: 10px; color: var(--text-muted); }
+
+.card-price {
+  font-family: 'Space Mono', monospace;
+  font-size: 20px; font-weight: 700;
+  color: var(--text);
+  margin: 8px 0 10px;
+  letter-spacing: -0.5px;
+}
+.card-price.loading-val { color: var(--text-muted); }
+
+.changes-row {
+  display: flex; gap: 6px;
+  flex-wrap: wrap;
+}
+
+.change-chip {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px 8px; border-radius: 6px;
+  min-width: 54px; flex: 1;
+  border: 1px solid transparent;
+}
+.change-chip.pos { background: var(--green-bg); border-color: var(--green-border); }
+.change-chip.neg { background: var(--red-bg); border-color: var(--red-border); }
+.change-chip.neu { background: var(--bg3); border-color: var(--border); }
+
+.change-label { font-size: 8px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+.change-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+}
+.change-chip.pos .change-val { color: var(--green); }
+.change-chip.neg .change-val { color: var(--red); }
+.change-chip.neu .change-val { color: var(--text-muted); }
+
+/* ── COMMODITY CATEGORY ── */
+.commodity-category-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; margin-top: 20px;
+}
+.cat-icon { font-size: 20px; }
+.cat-name { font-size: 14px; font-weight: 600; color: var(--text-dim); }
+.cat-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ── FOREX SPECIAL ── */
+.forex-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.forex-card:hover { border-color: var(--border-hover); background: var(--bg3); transform: translateY(-1px); }
+
+.forex-pair { font-size: 14px; font-weight: 700; letter-spacing: 0.03em; margin-bottom: 2px; }
+.forex-pair .base { color: var(--text); }
+.forex-pair .slash { color: var(--text-muted); margin: 0 3px; }
+.forex-pair .quote { color: var(--text-dim); }
+
+.forex-flags { font-size: 16px; margin-bottom: 6px; }
+
+.forex-price {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px; font-weight: 700;
+  color: var(--text); margin: 6px 0 8px;
+}
+
+/* ── SKELETON ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.skel-price { height: 24px; width: 110px; margin: 8px 0; }
+.skel-chip { height: 36px; flex: 1; border-radius: 6px; }
+
+/* ── ERROR CARD ── */
+.error-val { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--text-muted); }
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center;
+  padding: 20px 32px 32px;
+  font-size: 11px; color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  line-height: 1.8;
+}
+
+/* ── FLASH ANIMATION ── */
+@keyframes flashGreen { 0% { background: var(--green-bg); } 100% { background: transparent; } }
+@keyframes flashRed { 0% { background: var(--red-bg); } 100% { background: transparent; } }
+.flash-pos { animation: flashGreen 0.8s ease-out; }
+.flash-neg { animation: flashRed 0.8s ease-out; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .header { padding: 16px; }
+  .main { padding: 16px 16px 40px; }
+  .section-title { font-size: 16px; }
+  .cards-grid, .cards-grid-wide, .cards-grid-forex {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .card-price { font-size: 17px; }
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  padding: 14px 20px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 28px;
+}
+.stat-item { display: flex; flex-direction: column; gap: 2px; }
+.stat-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+.stat-val { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+.stat-val.up { color: var(--green); }
+.stat-val.down { color: var(--red); }
+.stat-val.neutral { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">📈</div>
+    <div>
+      <div class="header-title">Global Markets</div>
+      <div class="header-subtitle">Indices · Forex · Commodities · Real-time data</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      <span>LIVE DATA</span>
+    </div>
+    <button class="refresh-btn" onclick="refreshAll()" id="refreshBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh
+    </button>
+    <div class="last-update" id="lastUpdate">—</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- MARKET PULSE BAR -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item"><div class="stat-label">S&amp;P 500</div><div class="stat-val neutral" id="stat-sp500">—</div></div>
+    <div class="stat-item"><div class="stat-label">NASDAQ</div><div class="stat-val neutral" id="stat-nasdaq">—</div></div>
+    <div class="stat-item"><div class="stat-label">VIX</div><div class="stat-val neutral" id="stat-vix">—</div></div>
+    <div class="stat-item"><div class="stat-label">Gold</div><div class="stat-val neutral" id="stat-gold">—</div></div>
+    <div class="stat-item"><div class="stat-label">EUR/USD</div><div class="stat-val neutral" id="stat-eurusd">—</div></div>
+    <div class="stat-item"><div class="stat-label">WTI Oil</div><div class="stat-val neutral" id="stat-oil">—</div></div>
+    <div class="stat-item"><div class="stat-label">BTC/USD</div><div class="stat-val neutral" id="stat-btc">—</div></div>
+  </div>
+
+  <!-- ══ SECTION: INDICES ══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.2);">📊</div>
+      <div>
+        <div class="section-title">Stock Indices <span class="section-count">28 indices</span></div>
+      </div>
+      <div class="section-divider"></div>
+    </div>
+
+    <!-- Americas -->
+    <div class="region-group">
+      <div class="region-label">🌎 Americas</div>
+      <div class="cards-grid" id="grid-americas"></div>
+    </div>
+
+    <!-- Europe -->
+    <div class="region-group">
+      <div class="region-label">🌍 Europe</div>
+      <div class="cards-grid" id="grid-europe"></div>
+    </div>
+
+    <!-- Middle East & Africa -->
+    <div class="region-group">
+      <div class="region-label">🌍 Middle East &amp; Africa</div>
+      <div class="cards-grid" id="grid-mea"></div>
+    </div>
+
+    <!-- Asia-Pacific -->
+    <div class="region-group">
+      <div class="region-label">🌏 Asia-Pacific</div>
+      <div class="cards-grid" id="grid-asia"></div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION: FOREX ══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.2);">💱</div>
+      <div>
+        <div class="section-title">Currency Pairs <span class="section-count">20 pairs</span></div>
+      </div>
+      <div class="section-divider"></div>
+    </div>
+    <div class="cards-grid-forex" id="grid-forex"></div>
+  </div>
+
+  <!-- ══ SECTION: COMMODITIES ══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.2);">🏭</div>
+      <div>
+        <div class="section-title">Commodities <span class="section-count">26 assets</span></div>
+      </div>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="commodity-category-header">
+      <div class="cat-icon">⚡</div>
+      <div class="cat-name">ENERGY</div>
+      <div class="cat-line"></div>
+    </div>
+    <div class="cards-grid-wide" id="grid-energy"></div>
+
+    <div class="commodity-category-header">
+      <div class="cat-icon">🥇</div>
+      <div class="cat-name">METALS</div>
+      <div class="cat-line"></div>
+    </div>
+    <div class="cards-grid-wide" id="grid-metals"></div>
+
+    <div class="commodity-category-header">
+      <div class="cat-icon">🌾</div>
+      <div class="cat-name">AGRICULTURE</div>
+      <div class="cat-line"></div>
+    </div>
+    <div class="cards-grid-wide" id="grid-agri"></div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Data sourced via Yahoo Finance · Prices may be delayed 15–20 min · For informational purposes only<br>
+  Auto-refreshes every 60 seconds · <a href="https://finance.yahoo.com" target="_blank" style="color:var(--blue);text-decoration:none;">finance.yahoo.com</a>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA DEFINITIONS
+// ─────────────────────────────────────────────
+
+const INDICES = {
+  americas: [
+    { symbol: '^GSPC',  name: 'S&P 500',           emoji: '🇺🇸', badge: 'US', id: 'sp500' },
+    { symbol: '^IXIC',  name: 'NASDAQ Composite',  emoji: '🇺🇸', badge: 'US', id: 'nasdaq' },
+    { symbol: '^DJI',   name: 'Dow Jones',          emoji: '🇺🇸', badge: 'US' },
+    { symbol: '^RUT',   name: 'Russell 2000',       emoji: '🇺🇸', badge: 'US' },
+    { symbol: '^VIX',   name: 'VIX',                emoji: '📉', badge: 'FEAR', id: 'vix' },
+    { symbol: '^BVSP',  name: 'Bovespa',            emoji: '🇧🇷', badge: 'BR' },
+    { symbol: '^MXX',   name: 'IPC Mexico',         emoji: '🇲🇽', badge: 'MX' },
+    { symbol: '^GSPTSE',name: 'S&P/TSX Composite',  emoji: '🇨🇦', badge: 'CA' },
+  ],
+  europe: [
+    { symbol: '^FCHI',    name: 'CAC 40',         emoji: '🇫🇷', badge: 'FR' },
+    { symbol: '^GDAXI',   name: 'DAX 40',         emoji: '🇩🇪', badge: 'DE' },
+    { symbol: '^FTSE',    name: 'FTSE 100',        emoji: '🇬🇧', badge: 'UK' },
+    { symbol: '^STOXX50E',name: 'EURO STOXX 50',   emoji: '🇪🇺', badge: 'EU' },
+    { symbol: '^IBEX',    name: 'IBEX 35',         emoji: '🇪🇸', badge: 'ES' },
+    { symbol: 'FTSEMIB.MI',name: 'FTSE MIB',       emoji: '🇮🇹', badge: 'IT' },
+    { symbol: '^AEX',     name: 'AEX',             emoji: '🇳🇱', badge: 'NL' },
+    { symbol: '^SSMI',    name: 'SMI',             emoji: '🇨🇭', badge: 'CH' },
+    { symbol: '^BFX',     name: 'BEL 20',          emoji: '🇧🇪', badge: 'BE' },
+    { symbol: '^OMXS30',  name: 'OMX Stockholm 30',emoji: '🇸🇪', badge: 'SE' },
+  ],
+  mea: [
+    { symbol: '^TA35.TA', name: 'Tel Aviv 35',     emoji: '🇮🇱', badge: 'IL' },
+    { symbol: '^CASE30',  name: 'EGX 30 (Egypt)',  emoji: '🇪🇬', badge: 'EG' },
+  ],
+  asia: [
+    { symbol: '^N225',    name: 'Nikkei 225',          emoji: '🇯🇵', badge: 'JP' },
+    { symbol: '^TOPX',    name: 'TOPIX',               emoji: '🇯🇵', badge: 'JP' },
+    { symbol: '^HSI',     name: 'Hang Seng',           emoji: '🇭🇰', badge: 'HK' },
+    { symbol: '000001.SS',name: 'Shanghai Composite',  emoji: '🇨🇳', badge: 'CN' },
+    { symbol: '^NSEI',    name: 'Nifty 50',            emoji: '🇮🇳', badge: 'IN' },
+    { symbol: '^STI',     name: 'Straits Times',       emoji: '🇸🇬', badge: 'SG' },
+    { symbol: '^AXJO',    name: 'ASX 200',             emoji: '🇦🇺', badge: 'AU' },
+    { symbol: '^TWII',    name: 'TAIEX',               emoji: '🇹🇼', badge: 'TW' },
+    { symbol: '^KS11',    name: 'KOSPI',               emoji: '🇰🇷', badge: 'KR' },
+  ],
+};
+
+const FOREX = [
+  { symbol: 'EURUSD=X', name: 'EUR / USD', flags: '🇪🇺🇺🇸', base: 'EUR', quote: 'USD', id: 'eurusd' },
+  { symbol: 'GBPUSD=X', name: 'GBP / USD', flags: '🇬🇧🇺🇸', base: 'GBP', quote: 'USD' },
+  { symbol: 'JPY=X',    name: 'USD / JPY', flags: '🇺🇸🇯🇵', base: 'USD', quote: 'JPY' },
+  { symbol: 'CHF=X',    name: 'USD / CHF', flags: '🇺🇸🇨🇭', base: 'USD', quote: 'CHF' },
+  { symbol: 'CAD=X',    name: 'USD / CAD', flags: '🇺🇸🇨🇦', base: 'USD', quote: 'CAD' },
+  { symbol: 'AUDUSD=X', name: 'AUD / USD', flags: '🇦🇺🇺🇸', base: 'AUD', quote: 'USD' },
+  { symbol: 'NZDUSD=X', name: 'NZD / USD', flags: '🇳🇿🇺🇸', base: 'NZD', quote: 'USD' },
+  { symbol: 'EURGBP=X', name: 'EUR / GBP', flags: '🇪🇺🇬🇧', base: 'EUR', quote: 'GBP' },
+  { symbol: 'EURJPY=X', name: 'EUR / JPY', flags: '🇪🇺🇯🇵', base: 'EUR', quote: 'JPY' },
+  { symbol: 'GBPJPY=X', name: 'GBP / JPY', flags: '🇬🇧🇯🇵', base: 'GBP', quote: 'JPY' },
+  { symbol: 'EURCHF=X', name: 'EUR / CHF', flags: '🇪🇺🇨🇭', base: 'EUR', quote: 'CHF' },
+  { symbol: 'CNY=X',    name: 'USD / CNY', flags: '🇺🇸🇨🇳', base: 'USD', quote: 'CNY' },
+  { symbol: 'HKD=X',    name: 'USD / HKD', flags: '🇺🇸🇭🇰', base: 'USD', quote: 'HKD' },
+  { symbol: 'MXN=X',    name: 'USD / MXN', flags: '🇺🇸🇲🇽', base: 'USD', quote: 'MXN' },
+  { symbol: 'BRL=X',    name: 'USD / BRL', flags: '🇺🇸🇧🇷', base: 'USD', quote: 'BRL' },
+  { symbol: 'INR=X',    name: 'USD / INR', flags: '🇺🇸🇮🇳', base: 'USD', quote: 'INR' },
+  { symbol: 'ZAR=X',    name: 'USD / ZAR', flags: '🇺🇸🇿🇦', base: 'USD', quote: 'ZAR' },
+  { symbol: 'SGD=X',    name: 'USD / SGD', flags: '🇺🇸🇸🇬', base: 'USD', quote: 'SGD' },
+  { symbol: 'SEK=X',    name: 'USD / SEK', flags: '🇺🇸🇸🇪', base: 'USD', quote: 'SEK' },
+  { symbol: 'NOK=X',    name: 'USD / NOK', flags: '🇺🇸🇳🇴', base: 'USD', quote: 'NOK' },
+];
+
+const COMMODITIES = {
+  energy: [
+    { symbol: 'BZ=F',  name: 'Brent Crude Oil', emoji: '🛢️',  badge: 'USD/bbl', id: 'oil' },
+    { symbol: 'CL=F',  name: 'WTI Crude Oil',   emoji: '⛽',  badge: 'USD/bbl' },
+    { symbol: 'NG=F',  name: 'Natural Gas',      emoji: '🔥',  badge: 'USD/MMBtu' },
+    { symbol: 'RB=F',  name: 'RBOB Gasoline',    emoji: '⛽',  badge: 'USD/gal' },
+    { symbol: 'HO=F',  name: 'Heating Oil',      emoji: '🏭',  badge: 'USD/gal' },
+  ],
+  metals: [
+    { symbol: 'GC=F',  name: 'Gold',      emoji: '🥇', badge: 'USD/oz', id: 'gold' },
+    { symbol: 'SI=F',  name: 'Silver',    emoji: '🥈', badge: 'USD/oz' },
+    { symbol: 'HG=F',  name: 'Copper',    emoji: '🔶', badge: 'USD/lb' },
+    { symbol: 'PL=F',  name: 'Platinum',  emoji: '⚗️', badge: 'USD/oz' },
+    { symbol: 'PA=F',  name: 'Palladium', emoji: '💿', badge: 'USD/oz' },
+    { symbol: 'ALI=F', name: 'Aluminum',  emoji: '🔩', badge: 'USD/lb' },
+  ],
+  agriculture: [
+    { symbol: 'ZW=F',  name: 'US Wheat',     emoji: '🌾', badge: 'USc/bu' },
+    { symbol: 'ZC=F',  name: 'US Corn',      emoji: '🌽', badge: 'USc/bu' },
+    { symbol: 'ZS=F',  name: 'US Soybean',   emoji: '🫘', badge: 'USc/bu' },
+    { symbol: 'CT=F',  name: 'Cotton #2',    emoji: '🪡', badge: 'USc/lb' },
+    { symbol: 'CC=F',  name: 'Cocoa',        emoji: '🍫', badge: 'USD/t' },
+    { symbol: 'KC=F',  name: 'Coffee C',     emoji: '☕', badge: 'USc/lb' },
+    { symbol: 'SB=F',  name: 'Sugar #11',    emoji: '🍬', badge: 'USc/lb' },
+    { symbol: 'OJ=F',  name: 'Orange Juice', emoji: '🍊', badge: 'USc/lb' },
+    { symbol: 'ZO=F',  name: 'Oat',          emoji: '🌿', badge: 'USc/bu' },
+    { symbol: 'LBS=F', name: 'Lumber',       emoji: '🪵', badge: 'USD/mbf' },
+    { symbol: 'LE=F',  name: 'Live Cattle',  emoji: '🐄', badge: 'USc/lb' },
+    { symbol: 'HE=F',  name: 'Lean Hogs',    emoji: '🐷', badge: 'USc/lb' },
+  ],
+};
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const priceData = {};
+let refreshTimer = null;
+
+// ─────────────────────────────────────────────
+// FETCH HELPERS
+// ─────────────────────────────────────────────
+const PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+
+async function fetchJSON(url) {
+  for (const makeProxy of PROXIES) {
+    try {
+      const r = await fetch(makeProxy(url), { signal: AbortSignal.timeout(12000) });
+      if (!r.ok) continue;
+      const text = await r.text();
+      return JSON.parse(text);
+    } catch(e) { /* try next */ }
+  }
+  return null;
+}
+
+async function fetchQuotes(symbols) {
+  const url = `https://query1.finance.yahooapis.com/v7/finance/quote?symbols=${symbols.join(',')}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,shortName,currency`;
+  const data = await fetchJSON(url);
+  return data?.quoteResponse?.result || [];
+}
+
+async function fetchSpark(symbols) {
+  const url = `https://query1.finance.yahooapis.com/v7/finance/spark?symbols=${symbols.join(',')}&range=1mo&interval=1d`;
+  const data = await fetchJSON(url);
+  return data?.spark?.result || [];
+}
+
+// ─────────────────────────────────────────────
+// FORMAT HELPERS
+// ─────────────────────────────────────────────
+function fmtPrice(val, sym) {
+  if (val == null || isNaN(val)) return '—';
+  // Determine decimals
+  let decimals = 2;
+  if (val >= 10000) decimals = 0;
+  else if (val >= 1000) decimals = 1;
+  else if (val < 1) decimals = 4;
+  return val.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function fmtPct(val) {
+  if (val == null || isNaN(val)) return '—';
+  const sign = val >= 0 ? '+' : '';
+  return `${sign}${val.toFixed(2)}%`;
+}
+
+function chipClass(val) {
+  if (val == null || isNaN(val)) return 'neu';
+  return val >= 0 ? 'pos' : 'neg';
+}
+
+function computeChange(closes, daysBack) {
+  if (!closes || closes.length < 2) return null;
+  const filtered = closes.filter(v => v != null && !isNaN(v));
+  if (filtered.length < 2) return null;
+  const current = filtered[filtered.length - 1];
+  const idx = Math.max(0, filtered.length - 1 - daysBack);
+  const past = filtered[idx];
+  if (!past || past === 0) return null;
+  return ((current - past) / past) * 100;
+}
+
+// ─────────────────────────────────────────────
+// RENDER SKELETON
+// ─────────────────────────────────────────────
+function renderSkeleton(containerId, items, type='index') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = items.map(item => {
+    if (type === 'forex') return `
+      <div class="forex-card" id="card-${item.symbol.replace(/[^a-zA-Z0-9]/g,'_')}">
+        <div class="forex-flags">${item.flags}</div>
+        <div class="forex-pair"><span class="base">${item.base}</span><span class="slash">/</span><span class="quote">${item.quote}</span></div>
+        <div class="skeleton skel-price"></div>
+        <div class="changes-row">
+          <div class="skeleton skel-chip"></div>
+          <div class="skeleton skel-chip"></div>
+          <div class="skeleton skel-chip"></div>
+        </div>
+      </div>`;
+    return `
+      <div class="card" id="card-${item.symbol.replace(/[^a-zA-Z0-9]/g,'_')}">
+        <div class="card-glow"></div>
+        <div class="card-top">
+          <span class="card-emoji">${item.emoji}</span>
+          <span class="card-badge">${item.badge}</span>
+        </div>
+        <div class="card-name">${item.name}</div>
+        <div class="skeleton skel-price"></div>
+        <div class="changes-row">
+          <div class="skeleton skel-chip"></div>
+          <div class="skeleton skel-chip"></div>
+          <div class="skeleton skel-chip"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// RENDER CARD WITH DATA
+// ─────────────────────────────────────────────
+function updateCard(item, quote, sparkCloses, type='index') {
+  const id = `card-${item.symbol.replace(/[^a-zA-Z0-9]/g,'_')}`;
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const price = quote?.regularMarketPrice;
+  const chg1d = quote?.regularMarketChangePercent;
+  const chg1w = computeChange(sparkCloses, 5);
+  const chg1m = computeChange(sparkCloses, sparkCloses ? Math.min(21, sparkCloses.length - 1) : 0);
+
+  const isPos = chg1d != null ? chg1d >= 0 : null;
+  el.className = el.className.split(' ').filter(c => !['positive','negative','card','forex-card'].includes(c)).join(' ');
+  el.classList.add(type === 'forex' ? 'forex-card' : 'card');
+  if (isPos === true) el.classList.add('positive');
+  if (isPos === false) el.classList.add('negative');
+
+  const changesHTML = `
+    <div class="changes-row">
+      <div class="change-chip ${chipClass(chg1d)}"><div class="change-label">1D</div><div class="change-val">${fmtPct(chg1d)}</div></div>
+      <div class="change-chip ${chipClass(chg1w)}"><div class="change-label">1W</div><div class="change-val">${fmtPct(chg1w)}</div></div>
+      <div class="change-chip ${chipClass(chg1m)}"><div class="change-label">1M</div><div class="change-val">${fmtPct(chg1m)}</div></div>
+    </div>`;
+
+  if (type === 'forex') {
+    el.innerHTML = `
+      <div class="forex-flags">${item.flags}</div>
+      <div class="forex-pair"><span class="base">${item.base}</span><span class="slash">/</span><span class="quote">${item.quote}</span></div>
+      <div class="forex-price">${fmtPrice(price)}</div>
+      ${changesHTML}`;
+  } else {
+    el.innerHTML = `
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <span class="card-emoji">${item.emoji}</span>
+        <span class="card-badge">${item.badge}</span>
+      </div>
+      <div class="card-name">${item.name}</div>
+      <div class="card-price">${price != null ? fmtPrice(price) : '—'}</div>
+      ${changesHTML}`;
+  }
+
+  // Flash animation
+  if (priceData[item.symbol] != null && price != null) {
+    const prev = priceData[item.symbol];
+    if (price > prev) { el.classList.add('flash-pos'); setTimeout(() => el.classList.remove('flash-pos'), 800); }
+    else if (price < prev) { el.classList.add('flash-neg'); setTimeout(() => el.classList.remove('flash-neg'), 800); }
+  }
+  if (price != null) priceData[item.symbol] = price;
+}
+
+// ─────────────────────────────────────────────
+// UPDATE STATS BAR
+// ─────────────────────────────────────────────
+function updateStatBar(id, val, chg) {
+  const el = document.getElementById(id);
+  if (!el || val == null) return;
+  el.textContent = fmtPrice(val);
+  el.className = `stat-val ${chg != null ? (chg >= 0 ? 'up' : 'down') : 'neutral'}`;
+}
+
+// ─────────────────────────────────────────────
+// MAIN DATA LOAD
+// ─────────────────────────────────────────────
+async function loadAllData() {
+  // Build flat arrays
+  const allIndexItems = [
+    ...INDICES.americas, ...INDICES.europe, ...INDICES.mea, ...INDICES.asia
+  ];
+  const allCommoItems = [
+    ...COMMODITIES.energy, ...COMMODITIES.metals, ...COMMODITIES.agriculture
+  ];
+
+  const indexSymbols = allIndexItems.map(i => i.symbol);
+  const forexSymbols = FOREX.map(i => i.symbol);
+  const commoSymbols = allCommoItems.map(i => i.symbol);
+
+  // Add BTC for stats bar
+  const btcSymbol = ['BTC-USD'];
+
+  // Fetch all in parallel
+  const [
+    indexQuotes, forexQuotes, commoQuotes, btcQuotes,
+    indexSpark, forexSpark, commoSpark
+  ] = await Promise.all([
+    fetchQuotes(indexSymbols),
+    fetchQuotes(forexSymbols),
+    fetchQuotes(commoSymbols),
+    fetchQuotes(btcSymbol),
+    fetchSpark(indexSymbols),
+    fetchSpark(forexSymbols),
+    fetchSpark(commoSymbols),
+  ]);
+
+  // Build maps
+  const quoteMap = {};
+  [...indexQuotes, ...forexQuotes, ...commoQuotes, ...btcQuotes].forEach(q => {
+    if (q?.symbol) quoteMap[q.symbol] = q;
+  });
+
+  const sparkMap = {};
+  [...indexSpark, ...forexSpark, ...commoSpark].forEach(s => {
+    if (!s || !s.symbol) return;
+    const resp = s.response?.[0];
+    if (!resp) return;
+    const closes = resp.indicators?.quote?.[0]?.close || [];
+    sparkMap[s.symbol] = closes;
+  });
+
+  // Update index cards
+  allIndexItems.forEach(item => {
+    updateCard(item, quoteMap[item.symbol], sparkMap[item.symbol] || [], 'index');
+  });
+
+  // Update forex cards
+  FOREX.forEach(item => {
+    updateCard(item, quoteMap[item.symbol], sparkMap[item.symbol] || [], 'forex');
+  });
+
+  // Update commodity cards
+  allCommoItems.forEach(item => {
+    updateCard(item, quoteMap[item.symbol], sparkMap[item.symbol] || [], 'commodity');
+  });
+
+  // Update stats bar
+  const sp500q = quoteMap['^GSPC'];
+  const nasdaqq = quoteMap['^IXIC'];
+  const vixq = quoteMap['^VIX'];
+  const goldq = quoteMap['GC=F'];
+  const eurusdq = quoteMap['EURUSD=X'];
+  const oilq = quoteMap['CL=F'];
+  const btcq = quoteMap['BTC-USD'];
+
+  updateStatBar('stat-sp500', sp500q?.regularMarketPrice, sp500q?.regularMarketChangePercent);
+  updateStatBar('stat-nasdaq', nasdaqq?.regularMarketPrice, nasdaqq?.regularMarketChangePercent);
+  updateStatBar('stat-vix', vixq?.regularMarketPrice, null);
+  updateStatBar('stat-gold', goldq?.regularMarketPrice, goldq?.regularMarketChangePercent);
+  updateStatBar('stat-eurusd', eurusdq?.regularMarketPrice, eurusdq?.regularMarketChangePercent);
+  updateStatBar('stat-oil', oilq?.regularMarketPrice, oilq?.regularMarketChangePercent);
+  updateStatBar('stat-btc', btcq?.regularMarketPrice, btcq?.regularMarketChangePercent);
+
+  // Update timestamp
+  const now = new Date();
+  document.getElementById('lastUpdate').textContent =
+    `Updated ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+}
+
+// ─────────────────────────────────────────────
+// INIT SKELETONS
+// ─────────────────────────────────────────────
+function initSkeletons() {
+  renderSkeleton('grid-americas', INDICES.americas, 'index');
+  renderSkeleton('grid-europe', INDICES.europe, 'index');
+  renderSkeleton('grid-mea', INDICES.mea, 'index');
+  renderSkeleton('grid-asia', INDICES.asia, 'index');
+  renderSkeleton('grid-forex', FOREX, 'forex');
+  renderSkeleton('grid-energy', COMMODITIES.energy, 'commodity');
+  renderSkeleton('grid-metals', COMMODITIES.metals, 'commodity');
+  renderSkeleton('grid-agri', COMMODITIES.agriculture, 'commodity');
+}
+
+// ─────────────────────────────────────────────
+// REFRESH
+// ─────────────────────────────────────────────
+async function refreshAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  btn.disabled = true;
+  try { await loadAllData(); }
+  catch(e) { console.error('Refresh error:', e); }
+  finally {
+    btn.classList.remove('spinning');
+    btn.disabled = false;
+  }
+  // Reset auto-refresh timer
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(refreshAll, 60000);
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+initSkeletons();
+refreshAll();
+</script>
+</body>
+</html>
